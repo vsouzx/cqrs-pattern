@@ -1,0 +1,11 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: catalog-service
+  data:
+    mongodb:
+      auto-index-creation: true
+  mongodb:
+    uri: mongodb://localhost:27017/catalog_db

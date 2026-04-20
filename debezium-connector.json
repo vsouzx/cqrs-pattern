@@ -1,0 +1,33 @@
+{
+  "name": "outbox-mysql-source",
+  "config": {
+    "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+    "database.hostname": "mysql",
+    "database.port": "3306",
+    "database.user": "debezium",
+    "database.password": "dbz_secret",
+    "database.server.name": "mysql",
+    "database.server.id": "184054",
+    "schema.history.internal.kafka.bootstrap.servers": "kafka:9092",
+    "schema.history.internal.kafka.topic": "schema-changes.music_db",
+    "topic.prefix": "mysql",
+    "database.include.list": "music_db",
+    "table.include.list": "music_db.outbox_events",
+    "transforms": "outbox",
+    "transforms.outbox.type": "io.debezium.transforms.outbox.EventRouter",
+    "transforms.outbox.route.by.field": "aggregate_type",
+    "transforms.outbox.route.topic.replacement": "outbox.events.${routedByValue}",
+    "transforms.outbox.table.expand.json.payload": "true",
+    "transforms.outbox.table.field.event.id": "id",
+    "transforms.outbox.table.field.event.key": "aggregate_id",
+    "transforms.outbox.table.field.event.payload": "payload",
+    "transforms.outbox.table.field.event.type": "event_type",
+    "transforms.outbox.table.fields.additional.placement": "event_type:header:eventType",
+
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "key.converter.schemas.enable": "false"
+  }
+}
