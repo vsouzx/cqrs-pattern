@@ -18,7 +18,7 @@ Implementação de referência dos padrões **CQRS**, **Transactional Outbox** e
 ---
 ## Arquitetura
 
-<img width="977" height="590" alt="Image" src="https://github.com/user-attachments/assets/cb9cbc57-4000-48a3-8733-59fc42d85011" />
+<img width="977" height="590" alt="Image" src="https://github.com/user-attachments/assets/200cabf2-011a-4264-8b40-b13b4af15180" />
 
 ---
 
