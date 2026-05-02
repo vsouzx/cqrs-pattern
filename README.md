@@ -16,6 +16,11 @@ Implementação de referência dos padrões **CQRS**, **Transactional Outbox** e
 - [Exemplos de Requisição](#exemplos-de-requisição)
 
 ---
+## Arquitetura
+
+<img width="977" height="590" alt="Image" src="https://github.com/user-attachments/assets/cb9cbc57-4000-48a3-8733-59fc42d85011" />
+
+---
 
 ## Visão Geral
 
