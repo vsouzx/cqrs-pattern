@@ -63,7 +63,47 @@ O transform `EventRouter` lê o campo `aggregate_type` para rotear o evento para
 
 ### Idempotência do Consumidor
 
-O `catalog-service` usa `$addToSet` do MongoDB ao indexar músicas: se o mesmo evento chegar mais de uma vez (redelivery do Kafka), o banco ignora a duplicata silenciosamente. A remoção usa `$pull` com filtro pelo `id` único da música.
+O `catalog-service` implementa idempotência em múltiplas camadas:
+
+1. **Deduplicação por eventId**: antes de processar, verifica na coleção `processed_events` (MongoDB) se o evento já foi processado. O `_id` é o próprio `eventId`, garantindo unicidade atômica via `DuplicateKeyException`.
+
+2. **Proteção contra eventos fora de ordem**: se já existe um evento mais recente (por timestamp) para o mesmo `aggregateId`, o evento atrasado é descartado. Isso evita inconsistências como um `MusicRegistered` sobrescrevendo um `MusicRemoved` que já foi processado.
+
+3. **$addToSet como camada extra**: o MongoDB ignora duplicatas no subdocumento via `$addToSet`, servindo como última linha de defesa.
+
+**Fluxo:**
+```
+Evento chega no Kafka
+  → Verifica se eventId já existe em processed_events (skip se duplicata)
+  → Verifica se já existe evento MAIS RECENTE para o aggregateId (skip se fora de ordem)
+  → Insere atomicamente em processed_events
+  → Processa o evento (indexa/remove no MongoDB)
+  → Acknowledge
+```
+
+### Distributed Tracing & Observabilidade (ELK)
+
+O rastreamento distribuído é implementado via **Micrometer Tracing + Brave**, com logs estruturados em JSON enviados ao **ELK Stack**.
+
+**Fluxo de correlação end-to-end:**
+1. O Brave gera `traceId`/`spanId` automaticamente para cada request HTTP no music-service e popula o SLF4J MDC
+2. O `traceId` é persistido na coluna `trace_id` da tabela `outbox_events`
+3. O Debezium propaga `trace_id` como header Kafka (`traceId`)
+4. O catalog-service extrai o header e coloca no MDC como `traceparent`
+5. O Logstash Logback Encoder envia logs JSON estruturados para o Logstash via TCP
+6. O Elasticsearch indexa; o Kibana permite buscar por `traceId` ou `traceparent`
+
+**Exemplo de log JSON enviado ao ELK:**
+```json
+{
+  "@timestamp": "2026-05-03T15:58:51.842",
+  "service": "music-service",
+  "traceId": "64af3b2c1d2e3f4a",
+  "spanId": "a1b2c3d4e5f6a7b8",
+  "message": "Music registered successfully with ID: 9ab80add-...",
+  "level": "INFO"
+}
+```
 
 ---
 
@@ -79,6 +119,11 @@ Toda a infra sobe via Docker Compose.
 | Kafka Connect | 8083 | Roda o conector Debezium |
 | MongoDB | 27017 | Banco de dados do read side |
 | Kafka UI | 8080 | Dashboard para monitorar tópicos e mensagens |
+| Elasticsearch | 9200 | Armazenamento de logs estruturados |
+| Logstash | 5044 | Ingestão de logs via TCP (JSON) |
+| Kibana | 5601 | Visualização e busca de logs por traceId |
+| Prometheus | 9090 | Coleta de métricas |
+| Grafana | 3000 | Dashboards de métricas (Golden Signals) |
 
 
 ### Conector Debezium
@@ -167,7 +212,24 @@ cd catalog-service && mvn spring-boot:run
 
 ### Monitoramento
 
-Acesse o **Kafka UI** em [http://localhost:8080](http://localhost:8080) para visualizar os tópicos e mensagens em tempo real.
+- **Kafka UI**: [http://localhost:8080](http://localhost:8080) — tópicos e mensagens em tempo real
+- **Kibana**: [http://localhost:5601](http://localhost:5601) — logs estruturados com correlação por traceId
+- **Grafana**: [http://localhost:3000](http://localhost:3000) (admin/admin) — métricas e dashboards
+
+### Visualizando logs no Kibana
+
+1. Acesse [http://localhost:5601](http://localhost:5601)
+2. **Management** → **Stack Management** → **Data Views** → **Create data view**
+3. Index pattern: `app-logs-*` | Timestamp field: `@timestamp` → **Save**
+4. **Discover** → selecione `app-logs-*`
+5. Para correlacionar o fluxo completo de um request:
+   ```
+   traceId: "copie-do-log-do-music-service"
+   ```
+   ou no catalog-service:
+   ```
+   traceparent: "mesmo-traceId"
+   ```
 
 ---
 

@@ -1,0 +1,10 @@
+apiVersion: 1
+
+providers:
+  - name: default
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30   # recarrega o JSON do disco a cada 30s (útil para desenvolvimento)
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards   # diretório dentro do container onde os JSONs ficam

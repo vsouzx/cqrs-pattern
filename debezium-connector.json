@@ -13,6 +13,7 @@
     "topic.prefix": "mysql",
     "database.include.list": "music_db",
     "table.include.list": "music_db.outbox_events",
+    "snapshot.mode": "when_needed",
     "transforms": "outbox",
     "transforms.outbox.type": "io.debezium.transforms.outbox.EventRouter",
     "transforms.outbox.route.by.field": "aggregate_type",
@@ -22,7 +23,7 @@
     "transforms.outbox.table.field.event.key": "aggregate_id",
     "transforms.outbox.table.field.event.payload": "payload",
     "transforms.outbox.table.field.event.type": "event_type",
-    "transforms.outbox.table.fields.additional.placement": "event_type:header:eventType",
+    "transforms.outbox.table.fields.additional.placement": "event_type:header:eventType,trace_id:header:traceId",
 
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
     "value.converter.schemas.enable": "false",

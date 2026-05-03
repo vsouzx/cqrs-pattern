@@ -27,6 +27,9 @@ public class OutboxEventEntity {
     @Column(nullable = false, columnDefinition = "JSON")
     private String payload;
 
+    @Column(name = "trace_id")
+    private String traceId;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 }

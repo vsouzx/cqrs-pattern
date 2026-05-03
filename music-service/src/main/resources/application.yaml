@@ -27,4 +27,13 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info, metrics
+        include: health, info, metrics, prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}   # adiciona label "application" em TODAS as métricas
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true              # habilita histograma — necessário para histogram_quantile() no Prometheus
+  tracing:
+    sampling:
+      probability: 1.0                          # 100% em dev — ajustar em produção

@@ -44,6 +44,7 @@ public class KafkaConsumerConfig {
         factory.setConsumerFactory(consumerFactory);
         factory.setConcurrency(3);
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        factory.getContainerProperties().setObservationEnabled(true); // habilita tracing no consumer
         factory.setCommonErrorHandler(errorHandler());
         return factory;
     }

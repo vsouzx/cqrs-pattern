@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 15s      # coleta métricas a cada 15 segundos
+  evaluation_interval: 15s  # avalia regras de alerta a cada 15 segundos
+
+scrape_configs:
+  - job_name: music-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - host.docker.internal:8081
+
+  - job_name: catalog-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - host.docker.internal:8082

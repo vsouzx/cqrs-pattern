@@ -9,3 +9,19 @@ spring:
       auto-index-creation: true
   mongodb:
     uri: mongodb://localhost:27017/catalog_db
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}   # adiciona label "application" em TODAS as métricas
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true              # necessário para histogram_quantile() no Prometheus
+        spring.kafka.listener: true             # histograma para latência do consumer Kafka
+  tracing:
+    sampling:
+      probability: 1.0                          # 100% em dev — ajustar em produção

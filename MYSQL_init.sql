@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS outbox_events (
     aggregate_id   VARCHAR(36)   NOT NULL,   -- ex: "music.id" — vira a key do Kafka
     event_type     VARCHAR(100)  NOT NULL,   -- ex: "MusicRegistered"
     payload        JSON          NOT NULL,   -- evento completo serializado
+    trace_id       VARCHAR(32)   NULL,       -- traceId do OpenTelemetry para correlação end-to-end
     created_at     DATETIME(6)   NOT NULL,
 
     INDEX idx_aggregate (aggregate_type, aggregate_id),

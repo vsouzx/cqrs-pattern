@@ -5,6 +5,7 @@ import br.com.souza.cqrs_pattern.music_service.database.model.OutboxEventEntity;
 import br.com.souza.cqrs_pattern.music_service.database.repository.MusicsRepository;
 import br.com.souza.cqrs_pattern.music_service.database.repository.OutboxEventRepository;
 import br.com.souza.cqrs_pattern.music_service.dto.RegisterMusicRequestDTO;
+import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,7 @@ public class MusicService {
     private final MusicsRepository musicsRepository;
     private final OutboxEventRepository outboxEventRepository;
     private final ObjectMapper objectMapper;
+    private final Tracer tracer;
 
     @Transactional(rollbackFor = Exception.class)
     public void registerMusic(RegisterMusicRequestDTO request) throws Exception {
@@ -48,6 +50,7 @@ public class MusicService {
                     .aggregateId(music.getId())
                     .eventType("MusicRegistered")
                     .payload(objectMapper.writeValueAsString(music))
+                    .traceId(currentTraceId())
                     .createdAt(LocalDateTime.now())
                     .build());
             log.info("Music registered successfully with ID: {}", music.getId());
@@ -73,6 +76,7 @@ public class MusicService {
                     .aggregateId(music.getId())
                     .eventType("MusicRemoved")
                     .payload(objectMapper.writeValueAsString(music))
+                    .traceId(currentTraceId())
                     .createdAt(LocalDateTime.now())
                     .build());
             log.info("Music removed successfully with ID: {}", id);
@@ -82,5 +86,10 @@ public class MusicService {
             log.error("Error removing music with ID: {}", id, e);
             throw new Exception("Error removing music", e);
         }
+    }
+
+    private String currentTraceId() {
+        var span = tracer.currentSpan();
+        return span != null ? span.context().traceId() : null;
     }
 }
