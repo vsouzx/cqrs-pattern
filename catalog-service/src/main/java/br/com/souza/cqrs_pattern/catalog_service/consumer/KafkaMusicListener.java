@@ -1,6 +1,7 @@
 package br.com.souza.cqrs_pattern.catalog_service.consumer;
 
 import br.com.souza.cqrs_pattern.catalog_service.consumer.factory.MusicEventHandlerFactory;
+import br.com.souza.cqrs_pattern.catalog_service.dto.MusicEvent;
 import br.com.souza.cqrs_pattern.catalog_service.service.IdempotencyService;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -11,8 +12,10 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
+import java.time.ZoneOffset;
 
 @Component
 @RequiredArgsConstructor
@@ -21,6 +24,7 @@ public class KafkaMusicListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(KafkaMusicListener.class);
     private final MusicEventHandlerFactory musicEventHandlerFactory;
     private final IdempotencyService idempotencyService;
+    private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = "outbox.events.Musics")
     public void dispatchEvent(ConsumerRecord<String, String> consumerRecord,
@@ -34,7 +38,8 @@ public class KafkaMusicListener {
             }
             LOGGER.info("Processing event {}: {}", eventId, consumerRecord.value());
 
-            Instant eventTimestamp = Instant.ofEpochMilli(consumerRecord.timestamp());
+            MusicEvent musicEvent = objectMapper.readValue(consumerRecord.value(), MusicEvent.class);
+            Instant eventTimestamp = musicEvent.createdAt().toInstant(ZoneOffset.UTC);
             String aggregateId = consumerRecord.key();
 
             if (!idempotencyService.tryAcquire(eventId, aggregateId, eventType, eventTimestamp)) {
