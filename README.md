@@ -105,6 +105,21 @@ O rastreamento distribuído é implementado via **Micrometer Tracing + Brave**, 
 }
 ```
 
+<img width="1913" height="753" alt="Image" src="https://github.com/user-attachments/assets/d60f5d29-21f6-42a9-81e6-7b9e13cbb918" />
+
+---
+### Métricas e monitoramento (Prometheus + Grafana)
+
+**Dashboard 4 Golden Signals - Catalog Service**
+
+<img width="1913" height="855" alt="Image" src="https://github.com/user-attachments/assets/8f93d03a-bd91-4063-9f48-d90746ee303c" />
+
+<br/>
+
+**Dashboard 4 Golden Signals - Music Service**
+
+<img width="1913" height="855" alt="Image" src="https://github.com/user-attachments/assets/43ddd62a-7928-4119-bb4f-fb9a0a6c3c6e" />
+
 ---
 
 ## Infraestrutura
